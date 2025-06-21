@@ -3,38 +3,38 @@ Modulo do cliente no sistema distribuído de um editor de texto
 Grupo: Fernanda Ferreira de Mello, Gaya Isabel Pizoli, Vitor Lamas Esposito
 */
 
-package CLIENT
+package editor
 
 import (
-	PP2PLink "SD/PP2PLink"
+	PP2PLink "sistema-distribuido/PP2PLink"
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 // ------------------------------------------------------------------------------------
 // ------- principais tipos
 // ------------------------------------------------------------------------------------
 
-type AppRequestType int
+type AppClientRequestType int
 const (
-	READ AppRequestType = iota
+	READ AppClientRequestType = iota
 	WRITE
 )
 
-type AppRequest struct {
-	requestType AppRequestType
-	cursor int
-	line string
+type AppClientRequest struct {
+	RequestType AppClientRequestType
+	Cursor *int
+	Line *string
 }
 
-type AppResponse struct {
-	text string
+type AppClientResponse struct {
+	Text string
 }
 
 type Editor_Client_Module struct {
-	Req       chan AppRequest   // canal para receber pedidos da aplicacao (REQ e EXIT)
-	Ind       chan AppResponse  // canal para informar aplicacao que pode acessar
+	Req       chan AppClientRequest   // canal para receber pedidos da aplicacao (REQ e EXIT)
+	Ind       chan AppClientResponse  // canal para informar aplicacao que pode acessar
 	processes []string          // endereco de todos, na mesma ordem
 	id        int               // identificador do processo - é o indice no array de enderecos acima
 	dbg       bool
@@ -51,8 +51,8 @@ func NewClient(_addresses []string, _id int, _dbg bool) *Editor_Client_Module {
 	p2p := PP2PLink.NewPP2PLink(_addresses[_id], _dbg)
 
 	dmx := &Editor_Client_Module{
-		Req: make(chan AppRequest, 1),
-		Ind: make(chan AppResponse, 1),
+		Req: make(chan AppClientRequest, 1),
+		Ind: make(chan AppClientResponse, 1),
 
 		processes: _addresses,
 		id:        _id,
@@ -75,17 +75,18 @@ func (module *Editor_Client_Module) Start() {
 		for {
 			select {
 			case appReq := <-module.Req: // vindo da  aplicação
-				if appReq.requestType == READ {
+				fmt.Println("CLIENT recebe da app: ", appReq)
+				if appReq.RequestType == READ {
 					module.outDbg("APP quer ler texto")
 					module.handleUponReqRead() // ENTRADA DO ALGORITMO
 
-				} else if appReq.requestType == WRITE {
+				} else if appReq.RequestType == WRITE {
 					module.outDbg("APP quer editar linha de texto")
 					module.handleUponReqWrite(appReq) // ENTRADA DO ALGORITMO
 				}
 
 			case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo
-				//fmt.Printf("dimex recebe da rede: ", msgOutro)
+				fmt.Println("CLIENT recebe da rede: ", msgOutro)
 				if strings.HasPrefix(msgOutro.Message, "UPDATE") {
 					module.outDbg("         <<<---- responde! " + msgOutro.Message)
 					module.handleUponDeliverUpdate(msgOutro) // ENTRADA DO ALGORITMO
@@ -97,28 +98,28 @@ func (module *Editor_Client_Module) Start() {
 
 // ------------------------------------------------------------------------------------
 // ------- tratamento de pedidos vindos da aplicacao
-// ------- UPON READ
-// ------- UPON WRITE
+// ------- UPON read
+// ------- UPON write
 // ------------------------------------------------------------------------------------
 
 func (module *Editor_Client_Module) handleUponReqRead() {
-	module.sendToLink(module.processes[0], "READ", strconv.Itoa(module.id));
+	messageToSend := "READ," + strconv.Itoa(module.id)
+	module.sendToLink(module.processes[0], messageToSend, strconv.Itoa(module.id));
 }
 
-func (module *Editor_Client_Module) handleUponReqWrite(appReq AppRequest) {
-	message := "WRITE," + appReq.line + "," + appReq.line
+func (module *Editor_Client_Module) handleUponReqWrite(appReq AppClientRequest) {
+	message := "WRITE," + strconv.Itoa(*appReq.Cursor) + "," + *appReq.Line
 	module.sendToLink(module.processes[0], message, strconv.Itoa(module.id));
 }
 
 // ------------------------------------------------------------------------------------
 // ------- tratamento de mensagens de outros processos
-// ------- UPON respOk
-// ------- UPON reqEntry
+// ------- UPON update
 // ------------------------------------------------------------------------------------
 
 func (module *Editor_Client_Module) handleUponDeliverUpdate(msgOutro PP2PLink.PP2PLink_Ind_Message) {
-	updatedText := strings.TrimPrefix(msgOutro.Message, "UPDATE")
-	module.Ind <- AppResponse{ updatedText }
+	updatedText := strings.TrimPrefix(msgOutro.Message, "UPDATE,")
+	module.Ind <- AppClientResponse{ updatedText }
 }
 
 // ------------------------------------------------------------------------------------
