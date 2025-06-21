@@ -6,41 +6,44 @@ import (
 	"time"
 )
 
-const N = 200
+var u = [3]int{200, 500, 800}
+
 const MAX = 999
 
 func main() {
-	var v [N]int
-	fmt.Println("  ------ sequencial -------")
-	rand.Seed(time.Now().UnixNano())
+	for _, u := range u {
+		fmt.Printf("------ Execução sequencial com %d números ------\n", u)
 
-	for i := 0; i < N; i++ {
-		valor := rand.Intn(MAX) - rand.Intn(MAX)
+		v := make([]int, u)
+		rand.Seed(time.Now().UnixNano())
 
-		j := 0
-		for j = 0; j < i; j++ {
-			if v[j] >= valor {
+		inicio := time.Now()
+
+		for i := 0; i < u; i++ {
+			valor := rand.Intn(MAX) - rand.Intn(MAX)
+
+			j := 0
+			for j = 0; j < i; j++ {
+				if v[j] >= valor {
+					break
+				}
+			}
+			for k := i; k > j; k-- {
+				v[k] = v[k-1]
+			}
+			v[j] = valor
+		}
+
+		duracao := time.Since(inicio).Seconds()
+
+		sorted := true
+		for i := 1; i < u; i++ {
+			if v[i] < v[i-1] {
+				sorted = false
 				break
 			}
 		}
-		for k := i; k > j; k-- {
-			v[k] = v[k-1]
-		}
-		v[j] = valor
-	}
 
-	fmt.Println("Primeiros 20 valores ordenados:")
-	for i := 0; i < 20 && i < N; i++ {
-		fmt.Printf("%d ", v[i])
+		fmt.Printf("Execução sequencial com %d números: %.6f segundos - Ordenado: %t\n", u, duracao, sorted)
 	}
-	fmt.Println()
-
-	sorted := true
-	for i := 1; i < N; i++ {
-		if v[i] < v[i-1] {
-			sorted = false
-			break
-		}
-	}
-	fmt.Printf("Array está ordenado: %t\n", sorted)
 }

@@ -4,125 +4,64 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
-	"sync"
 	"time"
 )
+
+var n = [3]int{200, 500, 800}
+var p = [3]int{1, 2, 4}
 
 const MAX = 999
 
 func main() {
-	var N int
-	fmt.Print("Digite o valor de N (quantidade de números): ")
-	fmt.Scanf("%d", &N)
+	for _, p := range p {
+		runtime.GOMAXPROCS(p)
+		for _, z := range n {
 
-	if N <= 0 {
-		fmt.Println("N deve ser maior que 0")
-		return
-	}
+			inicio := time.Now()
 
-	fmt.Println("------ Pipeline Sort Dinâmico -------")
-	fmt.Printf("N = %d\n", N)
+			result := make(chan int, z)
+			canais := make([]chan int, z+1)
+			for i := 0; i <= z; i++ {
+				canais[i] = make(chan int, 2)
+			}
 
-	// Testa com 1, 2 e 4 núcleos
-	nucleos := []int{1, 2, 4}
+			for i := 0; i < z; i++ {
+				go cellSorter(i, canais[i], canais[i+1], result, MAX)
+			}
 
-	for _, numNucleos := range nucleos {
-		fmt.Printf("\n=== Executando com %d núcleo(s) ===\n", numNucleos)
-		executarPipelineSort(N, numNucleos)
-	}
-}
+			rand.Seed(time.Now().UnixNano())
+			for i := 0; i < z; i++ {
+				valor := rand.Intn(MAX) - rand.Intn(MAX)
+				canais[0] <- valor
+			}
+			canais[0] <- MAX + 1
 
-func executarPipelineSort(N int, numNucleos int) {
+			for i := 0; i < z; i++ {
+				<-result
+			}
+			<-canais[z]
 
-	runtime.GOMAXPROCS(numNucleos)
+			duracao := time.Since(inicio).Seconds()
 
-	maxGoroutines := numNucleos * 2
-	numProcessos := N
-	if numProcessos > maxGoroutines && maxGoroutines >= N {
-		numProcessos = maxGoroutines
-	}
+			fmt.Printf("Execução paralela com %d processadores e %d números: %.6f segundos\n", p, z, duracao)
 
-	fmt.Printf("Usando %d goroutines para %d números\n", numProcessos, N)
-
-	start := time.Now()
-
-	canais := make([]chan int, numProcessos+1)
-	for i := 0; i <= numProcessos; i++ {
-		canais[i] = make(chan int, N+1)
-	}
-
-	result := make(chan int, N)
-
-	var wg sync.WaitGroup
-	for i := 0; i < numProcessos; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			cellSorter(id, canais[id], canais[id+1], result, MAX)
-		}(i)
-	}
-
-	valores := make([]int, N)
-	go func() {
-		rand.Seed(time.Now().UnixNano())
-		for i := 0; i < N; i++ {
-			valor := rand.Intn(MAX) - rand.Intn(MAX)
-			valores[i] = valor
-			canais[0] <- valor
 		}
-
-		canais[0] <- MAX + 1
-	}()
-
-	resultados := make([]int, N)
-	for i := 0; i < N; i++ {
-		v := <-result
-		resultados[i] = v
 	}
-
-	<-canais[numProcessos]
-
-	wg.Wait()
-
-	elapsed := time.Since(start)
-
-	fmt.Print("Entrada (10 primeiros): ")
-	limite := 10
-	if N < 10 {
-		limite = N
-	}
-	for i := 0; i < limite; i++ {
-		fmt.Printf("%d ", valores[i])
-	}
-	fmt.Println()
-
-	fmt.Print("Saída (10 primeiros):   ")
-	for i := 0; i < limite; i++ {
-		fmt.Printf("%d ", resultados[i])
-	}
-	fmt.Println()
-
-	fmt.Printf("Tempo de execução: %v | Núcleos: %d\n", elapsed, numNucleos)
 }
 
-func cellSorter(id int, in chan int, out chan int, result chan int, max int) {
+func cellSorter(i int, in chan int, out chan int, result chan int, max int) {
 	var myVal int
-	var undef bool = true
-
+	var indefinido = true
 	for {
 		n := <-in
-
 		if n == max+1 {
-			if !undef {
-				result <- myVal
-			}
+			result <- myVal
 			out <- n
 			break
 		}
-
-		if undef {
+		if indefinido {
 			myVal = n
-			undef = false
+			indefinido = false
 		} else if n >= myVal {
 			out <- n
 		} else {
