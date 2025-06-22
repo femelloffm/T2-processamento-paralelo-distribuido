@@ -15,8 +15,8 @@ import (
 	"os"
 	"sistema-distribuido/editor"
 	"strconv"
-	"strings"
 	"time"
+
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -45,62 +45,60 @@ func main() {
 
 	err = screen.Init()
 	handleError(err)
-
-	client.Req <- editor.AppClientRequest{
-		RequestType: editor.READ,
-		Cursor: nil,
-		Line: nil,
-	}
-
-	response := <- client.Ind
-	text := strings.Split(response.Text, ",")
+	client.Req <- editor.AppClientRequest{ Type: editor.READ, Cursor: nil, Line: nil }
 	currentLine := 0
 
-	maxLines := len(text)
-	maxColumns := len(text[0])
+	var text []string = nil
+	maxLines := 0
+	//maxColumns := len(text[0])
 
-	//editor loop
-	//while running, update state, draw screen, else close
 	running := true
 	for running {
-		select { 
+		select {
+			// receive event from client module
 			case editorModuleResponse := <- client.Ind:
-				text = strings.Split(editorModuleResponse.Text, ",")
+				switch editorModuleResponse.Type {
+					case editor.ENTRY_OK:
+						screen.Suspend()
+						editLine(client, text, currentLine)
+						screen.Resume()
+					case editor.ENTRY_ERROR:
+						screen.Suspend()
+						openErrorScreen(*editorModuleResponse.Err)
+						screen.Resume()
+					case editor.RESP:
+						text = editorModuleResponse.Text
+						maxLines = len(text)
+				}
 			default:
-				screen.Clear()
-				drawText(screen, text, currentLine)
-				screen.Show()
+		}
+		screen.Clear()
+		drawText(screen, text, currentLine)
+		screen.Show()
 
-				// get event
-				ev := screen.PollEvent()
-				// check event type
-				switch ev := ev.(type) {
-					// check event key
-					case *tcell.EventKey:
-						if ev.Key() == tcell.KeyEscape {
-							running = false
-						} else if ev.Key() == tcell.KeyUp && currentLine > 0 {
-							currentLine--
-						} else if ev.Key() == tcell.KeyDown && currentLine < (maxLines - 1) {
-							currentLine++
-						} else if ev.Key() == tcell.KeyEnter {
-							screen.Suspend()
-							editLine(client, text, currentLine, maxColumns)
-							screen.Resume()
-						}
+		ev := screen.PollEvent()
+		switch ev := ev.(type) {
+			case *tcell.EventKey:
+				if ev.Key() == tcell.KeyEscape {
+					running = false
+				} else if ev.Key() == tcell.KeyUp && currentLine > 0 {
+					currentLine--
+				} else if ev.Key() == tcell.KeyDown && currentLine < (maxLines - 1) {
+					currentLine++
+				} else if ev.Key() == tcell.KeyEnter {
+					client.Req <- editor.AppClientRequest{ Type: editor.ENTRY, Cursor: &currentLine, Line: nil }
 				}
 		}
 	}
 }
 
-func editLine(client *editor.Editor_Client_Module, text []string, line int, maxColumns int) {
+func editLine(client *editor.Editor_Client_Module, text []string, line int) {
 	screen, err := tcell.NewScreen()
 	handleError(err)
 	defer screen.Fini()
 
 	err = screen.Init()
 	handleError(err)
-
 	lineContent := text[line]
 	cursor := 0
 
@@ -118,6 +116,7 @@ func editLine(client *editor.Editor_Client_Module, text []string, line int, maxC
 		switch ev := ev.(type) {
 			case *tcell.EventKey:
 				if ev.Key() == tcell.KeyEscape {
+					client.Req <- editor.AppClientRequest{ Type: editor.EXIT, Cursor: &line, Line: nil }
 					return
 				} else if ev.Key() == tcell.KeyLeft && cursor > 0 {
 					cursor--
@@ -143,16 +142,39 @@ func editLine(client *editor.Editor_Client_Module, text []string, line int, maxC
 	}
 }
 
+func openErrorScreen(entryErr string) {
+	screen, err := tcell.NewScreen()
+	handleError(err)
+	defer screen.Fini()
+
+	err = screen.Init()
+	handleError(err)
+
+	screen.Clear()
+	screen.SetContent(0, 0, '[', []rune("ERROR: " + entryErr + "]"), tcell.StyleDefault)
+	screen.SetContent(0, 0, '[', []rune("Press ESC to go back to editor]"), tcell.StyleDefault)
+	screen.Show()
+
+	for {
+		ev := screen.PollEvent()
+		switch ev := ev.(type) {
+			case *tcell.EventKey:
+				if ev.Key() == tcell.KeyEscape {
+					break
+				}
+		}
+	}
+}
+
 func sendWriteRequest(client *editor.Editor_Client_Module, line int, lineContent string) {
 	client.Req <- editor.AppClientRequest{
-		RequestType: editor.WRITE,
+		Type: editor.WRITE,
 		Cursor: &line,
 		Line: &lineContent,
 	}
 }
 
 func drawText(s tcell.Screen, text []string, line int) {
-
 	for i := range text {
 		lineIdentifier := ' '
 		if line == i {
