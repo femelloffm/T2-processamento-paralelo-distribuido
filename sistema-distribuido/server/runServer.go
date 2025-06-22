@@ -16,19 +16,18 @@ import (
 func main() {
 
 	if len(os.Args) < 5 {
-		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run runServer.go <number of lines> <number of columns> <file name> <id> <addresses>")
-		fmt.Println("go run runServer.go 20 20 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("Please specify server address:port!")
+		fmt.Println("go run runServer.go <number of lines> <number of columns> <file name> <address>")
+		fmt.Println("go run runServer.go 20 20 0 test.txt 127.0.0.1:5000")
 		return
 	}
 
 	numberOfLinesText, _ := strconv.Atoi(os.Args[1])
 	numberOfColumnsText, _ := strconv.Atoi(os.Args[2])
 	fileName := os.Args[3]
-	id, _ := strconv.Atoi(os.Args[4])
-	addresses := os.Args[5:]
+	address := os.Args[4]
 
-	var editor *editor.Editor_Server_Module = editor.NewServer(addresses, id, true, numberOfLinesText, numberOfColumnsText)
+	var editor *editor.Editor_Server_Module = editor.NewServer(address, true, numberOfLinesText, numberOfColumnsText)
 	time.Sleep(5 * time.Second)
 
 	for {

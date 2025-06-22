@@ -26,11 +26,11 @@ type AppServerResponse struct {
 type Editor_Server_Module struct {
 	Req              chan AppServerRequest   // canal para receber pedidos da aplicacao
 	Ind              chan AppServerResponse  // canal para entregar respostas para a aplicacao
-	processes        []string                // endereco de todos os processos
-	id               int                     // identificador do processo - é o indice no array de enderecos acima
+	address          string                  // endereco do servidor central
+	processes        []string                // endereco de todos os processos cliente conectados ao servidores
 	dbg              bool                    // utilizado para logs
 	text             []string                // texto sendo editado
-	criticalSections []int                   // cada indice do array representa a secao critica da linha correspondente, preenchida com o id de um processo que esta acessando ela ou -1
+	criticalSections []string                // cada indice do array representa a secao critica da linha correspondente, preenchida com o endereco do processo que esta acessando ela ou ""
 
 	Pp2plink *PP2PLink.PP2PLink              // acesso a comunicacao enviar por PP2PLinq.Req  e receber por PP2PLinq.Ind
 }
@@ -39,18 +39,18 @@ type Editor_Server_Module struct {
 // ------- inicializacao
 // ------------------------------------------------------------------------------------
 
-func NewServer(_addresses []string, _id int, _dbg bool, _numLines int, _numColumns int) *Editor_Server_Module {
+func NewServer(_serverAddress string, _dbg bool, _numLines int, _numColumns int) *Editor_Server_Module {
 
-	p2p := PP2PLink.NewPP2PLink(_addresses[_id], _dbg)
+	p2p := PP2PLink.NewPP2PLink(_serverAddress, _dbg)
 
 	server := &Editor_Server_Module{
 		Req: make(chan AppServerRequest, 1),
 		Ind: make(chan AppServerResponse, 1),
 
-		processes: _addresses,
-		id:        _id,
-		dbg:       _dbg,
-		text:      initializeText(_numLines, _numColumns),
+		address: _serverAddress,
+		processes: make([]string, 0),
+		dbg: _dbg,
+		text: initializeText(_numLines, _numColumns),
 		criticalSections: initializeCriticalSections(_numLines),
 
 		Pp2plink: p2p}
@@ -68,10 +68,10 @@ func initializeText(numLines int, numColumns int) []string {
 	return text
 }
 
-func initializeCriticalSections(numLines int) []int {
-	csArray := make([]int, numLines)
+func initializeCriticalSections(numLines int) []string {
+	csArray := make([]string, numLines)
 	for i := range csArray {
-		csArray[i] = -1
+		csArray[i] = ""
 	}
 	return csArray
 }
@@ -87,7 +87,11 @@ func (module *Editor_Server_Module) Start() {
 			select {
 				case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo por meio do modulo link perfeito
 					module.outDbg("          <<<---- pede??  " + msgOutro.Message)
-					if strings.Contains(msgOutro.Message, "readReq") {
+					if strings.Contains(msgOutro.Message, "disconnectReq") {
+						module.handleUponDeliverDisconnect(msgOutro) // cliente desconectando
+					} else if strings.Contains(msgOutro.Message, "connectReq") {
+						module.handleUponDeliverConnect(msgOutro) // cliente conectando
+					} else if strings.Contains(msgOutro.Message, "readReq") {
 						module.handleUponDeliverRead(msgOutro) // leitura
 					} else if strings.Contains(msgOutro.Message, "entryReq") {
 						module.handleUponDeliverEntry(msgOutro) // entrada em secao critica
@@ -103,85 +107,97 @@ func (module *Editor_Server_Module) Start() {
 
 // ------------------------------------------------------------------------------------
 // ------- tratamento de mensagens de outros processos
+// ------- UPON connectReq
+// ------- UPON disconnectReq
 // ------- UPON readReq
 // ------- UPON entryReq
 // ------- UPON exitReq
 // ------- UPON writeReq
 // ------------------------------------------------------------------------------------
 
-func (module *Editor_Server_Module) handleUponDeliverRead(msgOutro PP2PLink.PP2PLink_Ind_Message) {
-	clientId, err := strconv.Atoi(strings.TrimPrefix(msgOutro.Message, "readReq,"))
-	if err == nil {
-		messageToSend := "respOk," + strings.Join(module.text, "\n")
-		module.sendToLink(module.processes[clientId], messageToSend, strconv.Itoa(module.id))
+func (module *Editor_Server_Module) handleUponDeliverConnect(msgOutro PP2PLink.PP2PLink_Ind_Message) {
+	clientAddress := strings.TrimPrefix(msgOutro.Message, "connectReq,")
+	module.processes = append(module.processes, clientAddress)
+	module.sendToLink(clientAddress, "connectOk", module.address)
+}
+
+func (module *Editor_Server_Module) handleUponDeliverDisconnect(msgOutro PP2PLink.PP2PLink_Ind_Message) {
+	clientAddress := strings.TrimPrefix(msgOutro.Message, "disconnectReq,")
+	numberOfClients := len(module.processes)
+	for i := 0; i < numberOfClients; i++ {
+		if module.processes[i] == clientAddress {
+			module.processes[i] = module.processes[numberOfClients-1]
+			module.processes = module.processes[0:numberOfClients-1]
+			break
+		}
 	}
+	for i := 0; i < len(module.criticalSections); i++ {
+		if module.criticalSections[i] == clientAddress {
+			module.criticalSections[i] = ""
+		}
+	}
+	module.sendToLink(clientAddress, "disconnectOk", module.address)
+}
+
+func (module *Editor_Server_Module) handleUponDeliverRead(msgOutro PP2PLink.PP2PLink_Ind_Message) {
+	clientAddress := strings.TrimPrefix(msgOutro.Message, "readReq,")
+	messageToSend := "respOk," + strings.Join(module.text, "\n")
+	module.sendToLink(clientAddress, messageToSend, module.address)
 }
 
 func (module *Editor_Server_Module) handleUponDeliverEntry(msgOutro PP2PLink.PP2PLink_Ind_Message) {
 	messageElements := strings.Split(msgOutro.Message, ",")
-	clientId, clientIdError := strconv.Atoi(messageElements[1])
+	clientAddress := messageElements[1]
 	lineIndex, lineError := strconv.Atoi(messageElements[2])
-
-	//Se nao conseguir obter id do cliente, nao consegue enviar entryError para ele
-	if clientIdError != nil {
-		module.outDbg("ERRO ao obter endereco do processo que enviou evento entryReq: " + clientIdError.Error())
-		return
-	}
 
 	// Se nao conseguir obter index valido da linha, enviar entryError para o cliente
 	if lineError != nil {
 		module.outDbg("ERRO ao obter linha para acessar em evento entryReq: " + lineError.Error())
-		module.sendToLink(module.processes[clientId], "entryError,Unexpected error", strconv.Itoa(module.id))
+		module.sendToLink(clientAddress, "entryError,Unexpected error", module.address)
 		return
 	}
 
 	// Se nenhum outro processo estiver editando aquela linha, pode acessar a secao critica
-	if module.criticalSections[lineIndex] == -1 {
-		module.criticalSections[lineIndex] = clientId
+	if module.criticalSections[lineIndex] == "" {
+		module.criticalSections[lineIndex] = clientAddress
 		messageToSend := "entryOk"
-		module.sendToLink(module.processes[clientId], messageToSend, strconv.Itoa(module.id))
+		module.sendToLink(clientAddress, messageToSend, module.address)
 	} else { // Senao, nao pode acessar a secao critica para editar a linha
-		messageToSend := "entryError,User " + module.processes[module.criticalSections[lineIndex]] + " is editing this line"
-		module.sendToLink(module.processes[clientId], messageToSend, strconv.Itoa(module.id))
+		messageToSend := "entryError,User " + module.criticalSections[lineIndex] + " is editing this line"
+		module.sendToLink(clientAddress, messageToSend, module.address)
 	}
 }
 
 func (module *Editor_Server_Module) handleUponDeliverExit(msgOutro PP2PLink.PP2PLink_Ind_Message) {
 	messageElements := strings.Split(msgOutro.Message, ",")
-	clientId, clientIdError := strconv.Atoi(messageElements[1])
+	clientAddress := messageElements[1]
 	lineIndex, lineError := strconv.Atoi(messageElements[2])
 
-	if clientIdError != nil {
-		module.outDbg("ERRO ao obter endereco do processo que enviou evento entryReq: " + clientIdError.Error())
-		return
-	}
 	if lineError != nil {
 		module.outDbg("ERRO ao obter linha para acessar em evento entryReq: " + lineError.Error())
 		return
 	}
 
 	// Se processo estava editando aquela linha, libera o acesso a linha
-	if module.criticalSections[lineIndex] == clientId {
-		module.criticalSections[lineIndex] = -1
-		module.sendToLink(module.processes[clientId], "exitOk", strconv.Itoa(module.id))
+	if module.criticalSections[lineIndex] == clientAddress {
+		module.criticalSections[lineIndex] = ""
+		module.sendToLink(clientAddress, "exitOk", module.address)
 	}
 }
 
 func (module *Editor_Server_Module) handleUponDeliverWrite(msgOutro PP2PLink.PP2PLink_Ind_Message) {
 	messageElements := strings.Split(msgOutro.Message, ",")
-	clientId, clientIdError := strconv.Atoi(messageElements[1])
+	clientAddress := messageElements[1]
 	lineToUpdate, lineError := strconv.Atoi(messageElements[2])
 	lineUpdatedValue := messageElements[3:]
 
-	if clientIdError != nil {
-		module.outDbg("ERRO ao obter endereco do processo que enviou evento writeReq: " + clientIdError.Error())
-	} else if lineError != nil {
+	if lineError != nil {
 		module.outDbg("ERRO ao obter linha para editar em evento writeReq: " + lineError.Error())
-	} else if module.criticalSections[lineToUpdate] != clientId { // Se processo nao tem acesso a secao critica da linha
-		module.outDbg("ERRO ao processar evento writeReq recebido: processo " + module.processes[clientId] + " nao tem acesso a secao critica")
+	} else if module.criticalSections[lineToUpdate] != clientAddress { // Se processo nao tem acesso a secao critica da linha
+		module.outDbg("ERRO ao processar evento writeReq recebido: processo " + clientAddress + " nao tem acesso a secao critica")
 	} else {
 		// Se conseguiu obter os dados do evento sem erros e se este processo tem acesso a secao critica da linha a editar
-		module.criticalSections[lineToUpdate] = -1 // sai da secao critica
+		module.criticalSections[lineToUpdate] = "" // sai da secao critica
 		module.text[lineToUpdate] = strings.Join(lineUpdatedValue, "")
 		module.broadcastTextToAllProcesses()
 		module.Ind <- AppServerResponse{ module.text }
@@ -195,7 +211,7 @@ func (module *Editor_Server_Module) handleUponDeliverWrite(msgOutro PP2PLink.PP2
 func (module *Editor_Server_Module) broadcastTextToAllProcesses() {
 	messageToSend := "respOk," + strings.Join(module.text, "\n")
 	for i := 1; i < len(module.processes); i++ {
-		module.sendToLink(module.processes[i], messageToSend, strconv.Itoa(module.id));
+		module.sendToLink(module.processes[i], messageToSend, module.address);
 	}
 }
 

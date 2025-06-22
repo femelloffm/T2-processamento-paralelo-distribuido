@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 	"sistema-distribuido/editor"
 	"github.com/gdamore/tcell/v2"
@@ -18,18 +17,16 @@ const CURSOR rune = '*' // identificar em qual linha o cursor do usuario está
 func main() {
 
 	if len(os.Args) < 3 {
-		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run runClient.go <id> <server address> <client addresses>")
-		fmt.Println("go run runClient.go 1 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
+		fmt.Println("Please specify server and client address:port!")
+		fmt.Println("go run runClient.go <server address> <client address>")
+		fmt.Println("go run runClient.go 127.0.0.1:5000  127.0.0.1:6001")
 		return
 	}
 
-	id, _ := strconv.Atoi(os.Args[1])
-	addresses := os.Args[2:]
+	serverAddress := os.Args[1]
+	clientAddress := os.Args[2]
 
-	var client *editor.Editor_Client_Module = editor.NewClient(addresses, id, true)
-	fmt.Println(client)
-
+	var client *editor.Editor_Client_Module = editor.NewClient(serverAddress, clientAddress, false)
 	time.Sleep(5 * time.Second)
 
 	screen, err := tcell.NewScreen()
@@ -38,6 +35,8 @@ func main() {
 	err = screen.Init()
 	handleError(err)
 
+	client.Req <- editor.AppClientRequest{ Type: editor.CONNECT, Cursor: nil, Line: nil }
+	<- client.Ind
 	client.Req <- editor.AppClientRequest{ Type: editor.READ, Cursor: nil, Line: nil }
 	text := (<- client.Ind).Text
 	maxLines := len(text)
@@ -49,6 +48,8 @@ func main() {
 			// receive event from client module
 			case editorModuleResponse := <- client.Ind:
 				switch editorModuleResponse.Type {
+					case editor.DISCONNECT_OK:
+						running = false
 					case editor.ENTRY_OK:
 						screen.Suspend()
 						text = editLine(client, text, currentLine)
@@ -69,7 +70,7 @@ func main() {
 					switch ev := ev.(type) {
 						case *tcell.EventKey:
 							if ev.Key() == tcell.KeyEscape {
-								running = false
+								client.Req <- editor.AppClientRequest{ Type: editor.DISCONNECT, Cursor: nil, Line: nil }
 							} else if ev.Key() == tcell.KeyUp && currentLine > 0 {
 								currentLine--
 							} else if ev.Key() == tcell.KeyDown && currentLine < (maxLines - 1) {
