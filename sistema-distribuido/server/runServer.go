@@ -17,15 +17,16 @@ func main() {
 
 	if len(os.Args) < 5 {
 		fmt.Println("Please specify at least one address:port!")
-		fmt.Println("go run runServer.go <number of lines> <number of columns> <id> <addresses>")
+		fmt.Println("go run runServer.go <number of lines> <number of columns> <file name> <id> <addresses>")
 		fmt.Println("go run runServer.go 20 20 0 127.0.0.1:5000  127.0.0.1:6001  127.0.0.1:7002")
 		return
 	}
 
 	numberOfLinesText, _ := strconv.Atoi(os.Args[1])
 	numberOfColumnsText, _ := strconv.Atoi(os.Args[2])
-	id, _ := strconv.Atoi(os.Args[3])
-	addresses := os.Args[4:]
+	fileName := os.Args[3]
+	id, _ := strconv.Atoi(os.Args[4])
+	addresses := os.Args[5:]
 
 	var editor *editor.Editor_Server_Module = editor.NewServer(addresses, id, true, numberOfLinesText, numberOfColumnsText)
 	time.Sleep(5 * time.Second)
@@ -35,7 +36,7 @@ func main() {
 
 		// Armazena conteudo do texto sendo editado em arquivo
 		bytesToWrite := []byte(strings.Join(response.Text, "\n"))
-		err := os.WriteFile("./text.txt", bytesToWrite, 0644)
+		err := os.WriteFile(fileName, bytesToWrite, 0644)
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
 			log.Fatal()
