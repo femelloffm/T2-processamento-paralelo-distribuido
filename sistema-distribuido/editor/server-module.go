@@ -84,6 +84,7 @@ func (module *Editor_Server_Module) Start() {
 
 	go func() {
 		for {
+			module.outDbg("Processes connected: " + strings.Join(module.processes, ","))
 			select {
 				case msgOutro := <-module.Pp2plink.Ind: // vindo de outro processo por meio do modulo link perfeito
 					module.outDbg("          <<<---- pede??  " + msgOutro.Message)
@@ -210,7 +211,7 @@ func (module *Editor_Server_Module) handleUponDeliverWrite(msgOutro PP2PLink.PP2
 
 func (module *Editor_Server_Module) broadcastTextToAllProcesses() {
 	messageToSend := "respOk," + strings.Join(module.text, "\n")
-	for i := 1; i < len(module.processes); i++ {
+	for i := 0; i < len(module.processes); i++ {
 		module.sendToLink(module.processes[i], messageToSend, module.address);
 	}
 }
