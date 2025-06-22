@@ -20,6 +20,7 @@ type AppServerRequest struct {
 }
 
 type AppServerResponse struct {
+	Text []string
 }
 
 type Editor_Server_Module struct {
@@ -183,6 +184,7 @@ func (module *Editor_Server_Module) handleUponDeliverWrite(msgOutro PP2PLink.PP2
 		module.criticalSections[lineToUpdate] = -1 // sai da secao critica
 		module.text[lineToUpdate] = strings.Join(lineUpdatedValue, "")
 		module.broadcastTextToAllProcesses()
+		module.Ind <- AppServerResponse{ module.text }
 	}
 }
 

@@ -1,19 +1,15 @@
 // Aplicacao para disparar execução de servidor central em sistema distribuído de editor de texto
 // Grupo: Fernanda Ferreira de Mello, Gaya Isabel Pizoli, Vitor Lamas Esposito
 
-/*
-  Cria um processo servidor 
-  para cada processo: seu id único e a mesma lista de processos.
-  	o endereco de cada processo é o dado na lista, na posicao do seu id.
-*/
-
 package main
 
 import (
-	"sistema-distribuido/editor"
 	"fmt"
+	"log"
 	"os"
+	"sistema-distribuido/editor"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,12 +27,18 @@ func main() {
 	id, _ := strconv.Atoi(os.Args[3])
 	addresses := os.Args[4:]
 
-	var dmx *editor.Editor_Server_Module = editor.NewServer(addresses, id, true, numberOfLinesText, numberOfColumnsText)
-	fmt.Println(dmx)
-
+	var editor *editor.Editor_Server_Module = editor.NewServer(addresses, id, true, numberOfLinesText, numberOfColumnsText)
 	time.Sleep(5 * time.Second)
 
 	for {
-		<- dmx.Req
+		response := <- editor.Ind
+
+		// Armazena conteudo do texto sendo editado em arquivo
+		bytesToWrite := []byte(strings.Join(response.Text, "\n"))
+		err := os.WriteFile("./text.txt", bytesToWrite, 0644)
+		if err != nil {
+			fmt.Println("Error writing to file:", err)
+			log.Fatal()
+		}
 	}
 }
