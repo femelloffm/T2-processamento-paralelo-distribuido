@@ -1,5 +1,7 @@
-// Aplicacao para disparar execução de servidor central em sistema distribuído de editor de texto
-// Grupo: Fernanda Ferreira de Mello, Gaya Isabel Pizoli, Vitor Lamas Esposito
+/*
+Aplicacao para disparar execução de servidor central em sistema distribuído de editor de texto
+Grupo: Fernanda Ferreira de Mello, Gaya Isabel Pizoli, Vitor Lamas Esposito
+*/
 
 package main
 
@@ -7,18 +9,17 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sistema-distribuido/editor"
 	"strconv"
 	"strings"
-	"time"
+	"sistema-distribuido/editor"
 )
 
 func main() {
 
 	if len(os.Args) < 5 {
 		fmt.Println("Please specify server address:port!")
-		fmt.Println("go run runServer.go <number of lines> <number of columns> <file name> <address>")
-		fmt.Println("go run runServer.go 20 20 0 test.txt 127.0.0.1:5000")
+		fmt.Println("go run runServer.go <number of lines> <number of columns> <file name> <address:port>")
+		fmt.Println("Example: go run runServer.go 20 20 test.txt 127.0.0.1:5000")
 		return
 	}
 
@@ -27,8 +28,8 @@ func main() {
 	fileName := os.Args[3]
 	address := os.Args[4]
 
+	// Instancia modulo do servidor central
 	var editor *editor.Editor_Server_Module = editor.NewServer(address, true, numberOfLinesText, numberOfColumnsText)
-	time.Sleep(5 * time.Second)
 
 	for {
 		response := <- editor.Ind
