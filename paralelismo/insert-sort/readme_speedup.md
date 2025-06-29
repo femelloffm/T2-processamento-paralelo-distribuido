@@ -47,6 +47,24 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 - **Anotações**: Valores exatos de speedup em cada ponto
 - **Cores**: Verde (300), Azul (600), Vermelho (900)
 
+## Especificação máquina
+
+- **CPU**: 11th Gen Intel Core i7-11390H
+- **GRAPHICS**: NVIDIA TU117M [GeForce MX450] | Intel TigerLake-LP GT2 [Iris Xe Graphics]
+- **SSD**: 500 GB
+- **MEM**: 16 GB 
+- **Arquitetura**: x86_64
+- **Modo(s) operacional da CPU**: 32-bit, 64-bit
+- **Address sizes**: 39 bits physical, 48 bits virtual
+- **Ordem dos bytes**: Little Endian
+- **CPU(s)**: 8
+- **Thread(s) per núcleo**: 2
+- **Núcleo(s) por soquete**: 4
+- **Soquete(s)**: 1
+- **Step**: 2
+- **CPU MHz máx**: 5000,0000
+- **CPU MHz mín**: 400,0000
+
 ## Conclusões
 
 O estudo demonstra que a eficácia da paralelização está diretamente relacionada ao tamanho do problema. Para problemas pequenos, o overhead pode superar os benefícios, enquanto problemas maiores apresentam melhor aproveitamento dos recursos paralelos.
