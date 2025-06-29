@@ -1,4 +1,6 @@
-# Análise de Speedup em Execução Paralela
+# Análise de Speedup em Execução Paralela - Insert Sort
+
+Grupo: Fernanda Ferreira de Mello, Gaya Isabel Pizoli, Vitor Lamas Esposito
 
 ## Visão Geral
 
@@ -23,6 +25,9 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 | 900     | 0.035413s | 0.025181s | 0.019973s | 0.017854s |
 
 ## Resultados Principais
+
+<img src="graphics_insert_sort.png" alt="Gráficos de Speedup vs Número de Processadores para 300, 600 e 900 números" width="1000"/>
+
 
 ### Speedup Máximo por Caso
 - **300 números**: 1.52x (4 processadores)
