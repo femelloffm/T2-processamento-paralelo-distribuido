@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-var n = [3]int{200, 500, 800}
-var p = [3]int{1, 2, 4}
+var n = [3]int{300, 600, 900}
+var p = [4]int{1, 2, 3, 4}
 
 const MAX = 999
 

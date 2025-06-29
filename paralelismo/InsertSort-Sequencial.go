@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var u = [3]int{200, 500, 800}
+var u = [3]int{300, 600, 900}
 
 const MAX = 999
 
