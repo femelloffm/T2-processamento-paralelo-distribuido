@@ -61,29 +61,49 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 
 ## Resultados Principais
 
-
-### Speedup Máximo por Caso
-- **300 números**: 1.52x (4 processadores)
-- **600 números**: 1.83x (4 processadores)  
-- **900 números**: 1.98x (4 processadores)
-
-### Eficiência de Paralelização
-- **Melhor caso**: 50% de eficiência (900 números, 4 processadores)
-- **Pior caso**: 38% de eficiência (300 números, 4 processadores)
-
-## Principais Observações
-
-1. **Escalabilidade positiva**: Problemas maiores apresentam melhor speedup
-2. **Overhead significativo**: Nenhum caso alcançou speedup linear ideal
-3. **Anomalia nos 300 números**: Degradação de desempenho com 3 processadores
-4. **Tendência crescente**: Speedup melhora consistentemente com o tamanho do problema
-
-## Características dos Gráficos
+### Características dos Gráficos
 
 - **Linha sólida**: Speedup real obtido
 - **Linha tracejada**: Speedup ideal (linear)
 - **Anotações**: Valores exatos de speedup em cada ponto
-- **Cores**: Verde (300), Azul (600), Vermelho (900)
+- **Cores**: Verde (50000), Azul (100000), Vermelho (500000), Roxo (1000000)
+
+<img src="graphics_merge_sort.png" alt="Gráficos de Speedup vs Número de Processadores" width="1000"/>
+
+### Speedup Máximo por Caso
+
+#### Granularidade mínima igual a 1
+- **50000 números**: 2.54x (4 processadores)
+- **100000 números**: 2.50x (4 processadores)  
+- **500000 números**: 3.30x (4 processadores)
+- **1000000 números**: 2.83x (4 processadores)
+
+#### Granularidade mínima igual a 500
+- **50000 números**: 2.18x (4 processadores)
+- **100000 números**: 2.39x (4 processadores)  
+- **500000 números**: 2.54x (4 processadores)
+- **1000000 números**: 2.93x (4 processadores)
+
+#### Granularidade mínima igual a 1000
+- **50000 números**: 2.12x (4 processadores)
+- **100000 números**: 2.40x (4 processadores)  
+- **500000 números**: 2.80x (4 processadores)
+- **1000000 números**: 3.50x (4 processadores)
+
+#### Granularidade mínima igual a 5000
+- **50000 números**: 1.96x (4 processadores)
+- **100000 números**: 2.91x (4 processadores)  
+- **500000 números**: 3.32x (4 processadores)
+- **1000000 números**: 2.66x (4 processadores)
+
+### Eficiência de Paralelização
+É possível concluir que em alguns casos a paralelização do algoritmo foi bem eficiente, chegando próxima a aceleração máxima do programa paralelo. Um dos principais casos onde se percebeu este compotamento foi durante o teste com granularidade 1000, tamanho 1000000 e 2 processadores.
+
+## Principais Observações
+
+1. **Escalabilidade positiva**: Problemas de tamanhos maiores apresentam melhor speedup
+2. **Overhead significativo**: Nenhum caso alcançou speedup linear ideal
+4. **Tendência crescente**: Speedup melhora consistentemente com o tamanho do problema, ainda que a dimensão desta melhora varie dependendo dos parâmetros
 
 ## Especificação máquina
 
@@ -101,4 +121,4 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 
 ## Conclusões
 
-TODO
+Ao analisar estes resultados, concluiu-se que a escolha dos parâmetros de granularidade e tamanho do problema, especialmente o tamanho, tem uma grande influência no ganho de desempenho que se obtém ao paralelizar a solução do Merge Sort. Assim como foi identificado durante os testes da solução do algoritmo Insert Sort, entende-se que para problemas pequenos, o overhead pode superar os benefícios, enquanto problemas maiores podem se beneficiar mais da paralelização da solução.
