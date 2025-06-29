@@ -12,7 +12,7 @@ import (
 
 func main() {
 	processadores := []int{1, 2, 4} 
-	tamanhos := []int{10000, 50000, 100000, 500000, 1000000}
+	tamanhos := []int{50000, 100000, 500000, 1000000}
 	granularidades := []int{1, 500, 1000, 5000}
 
 	for _, tamanho := range tamanhos {

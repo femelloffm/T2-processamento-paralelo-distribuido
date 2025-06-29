@@ -13,7 +13,7 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 ## Dados Experimentais
 
 ### Configurações Testadas
-- **Tamanhos de problema**: 10000, 50000, 100000, 500000, 1000000 números
+- **Tamanhos de problema**: 50000, 100000, 500000, 1000000 números
 - **Processadores**: 1, 2, 4 cores
 - **Métrica**: Tempo de execução em segundos
 
@@ -22,7 +22,6 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 #### Execução do programa sequencial
 | Tamanho | Tempo  |
 |---------|--------|
-| 10000     | 0.001638s |
 | 50000     | 0.006930s |
 | 100000    | 0.016867s |
 | 500000    | 0.071829s |
@@ -31,7 +30,6 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 #### Granularidade mínima igual a 1
 | Tamanho | 1 proc | 2 proc | 4 proc |
 |---------|--------|--------|--------|
-| 10000   | 0.023918s | 0.012246s | 0.015379s |
 | 50000   | 0.116638s | 0.068143s | 0.045884s |
 | 100000  | 0.215335s | 0.164258s | 0.085965s |
 | 500000  | 1.239434s | 0.605324s | 0.376127s |
@@ -40,7 +38,6 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 #### Granularidade mínima igual a 500
 | Tamanho | 1 proc | 2 proc | 4 proc |
 |---------|--------|--------|--------|
-| 10000   | 0.001589s | 0.000000s | 0.000000s |
 | 50000   | 0.008533s | 0.005924s | 0.003907s |
 | 100000  | 0.017033s | 0.009607s | 0.007124s |
 | 500000  | 0.086655s | 0.058231s | 0.034174s |
@@ -49,7 +46,6 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 #### Granularidade mínima igual a 1000
 | Tamanho | 1 proc | 2 proc | 4 proc |
 |---------|--------|--------|--------|
-| 10000   | 0.001656s | 0.001240s | 0.000000s |
 | 50000   | 0.008000s | 0.004514s | 0.003774s |
 | 100000  | 0.020448s | 0.010387s | 0.008529s |
 | 500000  | 0.094249s | 0.049631s | 0.033649s |
@@ -58,7 +54,6 @@ Analisar a eficiência da paralelização através de gráficos de speedup.
 #### Granularidade mínima igual a 5000
 | Tamanho | 1 proc | 2 proc | 4 proc |
 |---------|--------|--------|--------|
-| 10000   | 0.000952s | 0.000000s | 0.001986s |
 | 50000   | 0.008762s | 0.005330s | 0.004470s |
 | 100000  | 0.019760s | 0.010317s | 0.006780s |
 | 500000  | 0.094068s | 0.055543s | 0.028345s |

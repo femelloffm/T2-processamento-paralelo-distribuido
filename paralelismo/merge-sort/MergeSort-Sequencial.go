@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	tamanhos := []int{10000, 50000, 100000, 500000, 1000000}
+	tamanhos := []int{50000, 100000, 500000, 1000000}
 
 	for _, tamanho := range tamanhos {
 		slice := generateSlice(tamanho)
