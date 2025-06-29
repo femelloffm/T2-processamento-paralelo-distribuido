@@ -1,0 +1,69 @@
+SEQUENCIAL
+Tamanho: 10000 - Tempo: 0.001638 segundos
+Tamanho: 50000 - Tempo: 0.006930 segundos
+Tamanho: 100000 - Tempo: 0.016867 segundos
+Tamanho: 500000 - Tempo: 0.071829 segundos
+Tamanho: 1000000 - Tempo: 0.140054 segundos
+
+
+PARALELO
+Tamanho: 10000 - P: 1 - G: 1 - Tempo Paralelo: 0.023918 s
+Tamanho: 10000 - P: 1 - G: 500 - Tempo Paralelo: 0.001589 s 
+Tamanho: 10000 - P: 1 - G: 1000 - Tempo Paralelo: 0.001656 s
+Tamanho: 10000 - P: 1 - G: 5000 - Tempo Paralelo: 0.000952 s
+Tamanho: 10000 - P: 2 - G: 1 - Tempo Paralelo: 0.012246 s   
+Tamanho: 10000 - P: 2 - G: 500 - Tempo Paralelo: 0.000000 s 
+Tamanho: 10000 - P: 2 - G: 1000 - Tempo Paralelo: 0.001240 s
+Tamanho: 10000 - P: 2 - G: 5000 - Tempo Paralelo: 0.000000 s
+Tamanho: 10000 - P: 4 - G: 1 - Tempo Paralelo: 0.015379 s   
+Tamanho: 10000 - P: 4 - G: 500 - Tempo Paralelo: 0.001550 s 
+Tamanho: 10000 - P: 4 - G: 1000 - Tempo Paralelo: 0.000000 s
+Tamanho: 10000 - P: 4 - G: 5000 - Tempo Paralelo: 0.001986 s
+Tamanho: 50000 - P: 1 - G: 1 - Tempo Paralelo: 0.116638 s
+Tamanho: 50000 - P: 1 - G: 500 - Tempo Paralelo: 0.008533 s
+Tamanho: 50000 - P: 1 - G: 1000 - Tempo Paralelo: 0.008000 s
+Tamanho: 50000 - P: 1 - G: 5000 - Tempo Paralelo: 0.008762 s
+Tamanho: 50000 - P: 2 - G: 1 - Tempo Paralelo: 0.068143 s
+Tamanho: 50000 - P: 2 - G: 500 - Tempo Paralelo: 0.005924 s 
+Tamanho: 50000 - P: 2 - G: 1000 - Tempo Paralelo: 0.004514 s
+Tamanho: 50000 - P: 2 - G: 5000 - Tempo Paralelo: 0.005330 s
+Tamanho: 50000 - P: 4 - G: 1 - Tempo Paralelo: 0.045884 s
+Tamanho: 50000 - P: 4 - G: 500 - Tempo Paralelo: 0.003907 s 
+Tamanho: 50000 - P: 4 - G: 1000 - Tempo Paralelo: 0.003774 s
+Tamanho: 50000 - P: 4 - G: 5000 - Tempo Paralelo: 0.004470 s
+Tamanho: 100000 - P: 1 - G: 1 - Tempo Paralelo: 0.215335 s
+Tamanho: 100000 - P: 1 - G: 500 - Tempo Paralelo: 0.017033 s
+Tamanho: 100000 - P: 1 - G: 1000 - Tempo Paralelo: 0.020448 s
+Tamanho: 100000 - P: 1 - G: 5000 - Tempo Paralelo: 0.019760 s
+Tamanho: 100000 - P: 2 - G: 1 - Tempo Paralelo: 0.164258 s
+Tamanho: 100000 - P: 2 - G: 500 - Tempo Paralelo: 0.009607 s
+Tamanho: 100000 - P: 2 - G: 1000 - Tempo Paralelo: 0.010387 s
+Tamanho: 100000 - P: 2 - G: 5000 - Tempo Paralelo: 0.010317 s
+Tamanho: 100000 - P: 4 - G: 1 - Tempo Paralelo: 0.085965 s
+Tamanho: 100000 - P: 4 - G: 500 - Tempo Paralelo: 0.007124 s
+Tamanho: 100000 - P: 4 - G: 1000 - Tempo Paralelo: 0.008529 s
+Tamanho: 100000 - P: 4 - G: 5000 - Tempo Paralelo: 0.006780 s
+Tamanho: 500000 - P: 1 - G: 1 - Tempo Paralelo: 1.239434 s
+Tamanho: 500000 - P: 1 - G: 500 - Tempo Paralelo: 0.086655 s
+Tamanho: 500000 - P: 1 - G: 1000 - Tempo Paralelo: 0.094249 s
+Tamanho: 500000 - P: 1 - G: 5000 - Tempo Paralelo: 0.094068 s
+Tamanho: 500000 - P: 2 - G: 1 - Tempo Paralelo: 0.605324 s
+Tamanho: 500000 - P: 2 - G: 500 - Tempo Paralelo: 0.058231 s
+Tamanho: 500000 - P: 2 - G: 1000 - Tempo Paralelo: 0.049631 s
+Tamanho: 500000 - P: 2 - G: 5000 - Tempo Paralelo: 0.055543 s
+Tamanho: 500000 - P: 4 - G: 1 - Tempo Paralelo: 0.376127 s
+Tamanho: 500000 - P: 4 - G: 500 - Tempo Paralelo: 0.034174 s
+Tamanho: 500000 - P: 4 - G: 1000 - Tempo Paralelo: 0.033649 s
+Tamanho: 500000 - P: 4 - G: 5000 - Tempo Paralelo: 0.028345 s
+Tamanho: 1000000 - P: 1 - G: 1 - Tempo Paralelo: 2.395317 s
+Tamanho: 1000000 - P: 1 - G: 500 - Tempo Paralelo: 0.195443 s
+Tamanho: 1000000 - P: 1 - G: 1000 - Tempo Paralelo: 0.190690 s
+Tamanho: 1000000 - P: 1 - G: 5000 - Tempo Paralelo: 0.181873 s
+Tamanho: 1000000 - P: 2 - G: 1 - Tempo Paralelo: 1.319387 s
+Tamanho: 1000000 - P: 2 - G: 500 - Tempo Paralelo: 0.125859 s
+Tamanho: 1000000 - P: 2 - G: 1000 - Tempo Paralelo: 0.092126 s
+Tamanho: 1000000 - P: 2 - G: 5000 - Tempo Paralelo: 0.107390 s
+Tamanho: 1000000 - P: 4 - G: 1 - Tempo Paralelo: 0.847059 s
+Tamanho: 1000000 - P: 4 - G: 500 - Tempo Paralelo: 0.066597 s
+Tamanho: 1000000 - P: 4 - G: 1000 - Tempo Paralelo: 0.054412 s
+Tamanho: 1000000 - P: 4 - G: 5000 - Tempo Paralelo: 0.068355 s
